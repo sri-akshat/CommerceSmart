@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id             String          @id @default(cuid())
+  name           String
+  city           String?
+  objective      String
+  category       String
+  brandName      String?
+  status         String          @default("DRAFT")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  site           Site?
+  competitors    Competitor[]
+  score          Score?
+  financialModel FinancialModel?
+  reports        Report[]
+}
+
+model Site {
+  id            String   @id @default(cuid())
+  projectId     String   @unique
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  address       String
+  latitude      Float
+  longitude     Float
+  propertyType  String?
+  ownershipMode String?
+  shopSizeSqft  Int?
+  monthlyRent   Int?
+  depositMonths Int?
+  purchasePrice Int?
+  floor         String?
+  frontageFeet  Float?
+  parking       String?
+  toilet        String?
+  visibility    String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Competitor {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  source          String
+  externalPlaceId String?
+  name            String
+  brandName       String?
+  category        String?
+  competitorType  String?
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  distanceMeters  Int?
+  rating          Float?
+  reviewCount     Int?
+  businessStatus  String?
+  website         String?
+  phone           String?
+  rawJson         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([externalPlaceId])
+}
+
+model Score {
+  id                            String   @id @default(cuid())
+  projectId                     String   @unique
+  project                       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  locationOpportunityScore      Int
+  categoryFitScore              Int
+  competitionOpportunityScore   Int
+  cannibalisationRiskScore      Int
+  realEstateLeaseabilityScore   Int
+  financialViabilityScore       Int
+  futureGrowthScore             Int
+  confidenceScore               Int
+  finalScore                    Int
+  verdict                       String
+  explanationJson               Json
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+}
+
+model FinancialModel {
+  id                String   @id @default(cuid())
+  projectId         String   @unique
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  capex             Int
+  monthlyRent       Int
+  staffCost         Int
+  utilities         Int
+  marketing         Int
+  grossMarginPct    Float
+  franchiseFee      Int?
+  expectedSalesJson Json
+  pnlJson           Json
+  breakEvenMonth    Int?
+  paybackMonth      Int?
+  scenarioJson      Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reportType     String
+  title          String
+  markdown       String
+  structuredJson Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model PlacesCache {
+  id             String   @id @default(cuid())
+  cacheKey       String   @unique
+  provider       String
+  query          String
+  latitude       Float
+  longitude      Float
+  radiusMeters   Int
+  responseJson   Json
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+}
